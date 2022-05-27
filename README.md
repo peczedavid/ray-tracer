@@ -1,0 +1,1 @@
+![](/images/uv-sphere.png)

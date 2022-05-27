@@ -53,7 +53,7 @@ class Game : Application() {
         root.children.add(canvas)
 
         prepareActionHandlers()
-        
+
         graphicsContext = canvas.graphicsContext2D
         pixelWriter = graphicsContext.pixelWriter
 
