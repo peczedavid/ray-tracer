@@ -290,7 +290,7 @@ class Game : Application() {
             if(hud) {
                 graphicsContext.fill = Color.WHITE
                 graphicsContext.font = Font.font(22.0)
-                graphicsContext.fillText("${1000 / elapsedMs} fps - $renderScale:1", 10.0, 27.0)
+                graphicsContext.fillText("$elapsedMs ms - $renderScale:1", 10.0, 27.0)
                 graphicsContext.fillText("$WIDTH x $HEIGHT", 10.0, (HEIGHT - 10).toDouble())
             }
         }
