@@ -12,7 +12,7 @@ import javafx.scene.image.PixelWriter
 import javafx.scene.input.KeyCode
 import javafx.scene.paint.Color
 import javafx.stage.Stage
-import java.lang.Math.pow
+import java.lang.Math.*
 import kotlin.math.PI
 import kotlin.math.pow
 
@@ -37,6 +37,8 @@ class Game : Application() {
     private val ambientColor = Vector3(0.1f, 0.1f, 0.1f)
     private var scale = 10
 
+    private lateinit var skybox : Image
+    private lateinit var skySphere : Sphere
     private lateinit var pixelWriter: PixelWriter
 
     // use a set so duplicates are not possible
@@ -78,13 +80,22 @@ class Game : Application() {
             RoughMaterial(Vector3(0.8f, 0.2f, 0.2f), Vector3(0.8f, 0.2f, 0.2f), 100f)
         val imageMaterial =
             RoughMaterial(Image("uv-test.png"), Vector3(1f, 1f, 1f), 100f)
+        val skyMaterial =
+            RoughMaterial(Image("/hdri-skybox.jpg"), Vector3(0f, 0f, 0f), 1000f)
+        skyMaterial.ambient = Vector3(1f, 1f, 1f)
 
 
+        skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
+        sceneObjects.add(skySphere)
         sceneObjects.add(Sphere(Vector3(2f, 2f, 0f), 1f, blueMaterial))
         sceneObjects.add(Sphere(Vector3(0f, 2f, -2f), 1f, imageMaterial))
-        sceneObjects.add(Sphere(Vector3(-2f, 2f, 0f), 1f, reflectiveMaterial))
+        sceneObjects.add(Sphere(Vector3(-2f, 5f, 0f), 1f, reflectiveMaterial))
         sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), planeMaterial))
 
+
+
+
+        skybox = Image("/hdri-skybox.jpg")
 
         // Main loop
         object : AnimationTimer() {
@@ -116,15 +127,28 @@ class Game : Application() {
     }
 
     private fun shadowHit(ray: Ray) : Boolean {
-        for(obj in sceneObjects)
-            if(obj.Intersect(ray).t > 0f) return true
+        for(i in 1 until sceneObjects.size)
+            if(sceneObjects[i].Intersect(ray).t > 0f) return true
         return false
+    }
+
+    private fun getSkyBoxColor(hit: Hit) : Vector3 {
+        val d = -hit.normal
+        var u = 0.5f + kotlin.math.atan2(d.x.toDouble(), d.z.toDouble()) / (2f * PI.toFloat())
+        var v = 0.5f + kotlin.math.asin(d.y.toDouble()) / PI.toFloat()
+        u = (1 - u) * skybox.width
+        v *= skybox.height
+        u = u.coerceIn(0.0, skybox.width - 1)
+        v = v.coerceIn(0.0, skybox.height - 1)
+        val color = skybox.pixelReader.getColor(u.toInt(), v.toInt())
+        return Vector3(color.red.toFloat(), color.green.toFloat(), color.blue.toFloat())
     }
 
     private fun trace(ray: Ray, depth : Int = 0) : Vector3 {
         if(depth > 2) return ambientColor
         val hit = firstHit(ray)
         if(hit.t < 0f) return ambientColor
+
         hit.material.set(hit.u, hit.v)
 
         var outColor = Vector3(0f, 0f, 0f)
@@ -151,7 +175,7 @@ class Game : Application() {
                 val one = Vector3(1f, 1f, 1f)
                 val F = hit.material.F0 + (one - hit.material.F0) * (1.0 - cosa).pow(5.0).toFloat()
 
-                outColor += trace(Ray(hit.position + hit.normal * 0.0001f, reflectedDirection), depth + 1) *F
+                outColor += trace(Ray(hit.position + hit.normal * 0.0001f, reflectedDirection), depth + 1) * F
             }
         }
         outColor.x = outColor.x.coerceIn(0f, 1f)
@@ -219,7 +243,6 @@ class Game : Application() {
 
         // clear canvas
         graphicsContext.clearRect(0.0, 0.0, WIDTH.toDouble(), HEIGHT.toDouble())
-
         controlCamera(elapsedMs / 1000f)
         controlScale()
 
