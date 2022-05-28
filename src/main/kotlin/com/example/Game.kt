@@ -35,7 +35,7 @@ class Game : Application() {
     private var cameraFov = 60f
 
     private val ambientColor = Vector3(0.25f, 0.25f, 0.25f)
-    private val movingScale = 10
+    private val movingScale = 15
     private var renderScaleSetting = 3
     private var renderScale = renderScaleSetting
     private var hud = true
@@ -102,8 +102,8 @@ class Game : Application() {
         skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
         sceneObjects.add(skySphere)
 
-        sceneObjects.add(Sphere(Vector3(2f, 1f, 0f), 1f, brass))
-        sceneObjects.add(Sphere(Vector3(0f, 1f, -2f), 1f, copper))
+        sceneObjects.add(Sphere(Vector3(2f, 1f, 0f), 1f, blueGlassMaterial))
+        sceneObjects.add(Sphere(Vector3(0f, 1f, -1f), 1f, copper))
         sceneObjects.add(Sphere(Vector3(-2f, 1f, 0f), 1f, silver))
         sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), groundTexture).apply { scale = 0.2f })
 
@@ -144,7 +144,7 @@ class Game : Application() {
     }
 
     private fun trace(ray: Ray, depth : Int = 0) : Vector3 {
-        if(depth > 3) return ambientColor
+        if(depth > 4f) return ambientColor
         val hit = firstHit(ray)
         if(hit.t < 0f) return ambientColor
 

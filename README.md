@@ -1,5 +1,2 @@
-![](/images/fullscreen-sample.png)
+![](/images/metal-sample.png)
 ![](/images/hud-aspect.png)
-![](/images/sky-2.png)
-![](/images/sky.png)
-![](/images/uv-sphere.png)
