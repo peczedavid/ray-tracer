@@ -42,8 +42,18 @@ class Plane(val point: Vector3, val normal: Vector3, material: Material, var sca
         hit.position = ray.start + ray.direction * hit.t
         hit.normal = normal
         hit.material = material
-        hit.u = abs(hit.position.x * scale) % 1f
-        hit.v = abs(hit.position.z * scale) % 1f
+        if(hit.position.x < 0f) {
+            hit.u = abs(hit.position.x * scale) % 1f
+        }
+        else {
+            hit.u = 1 - hit.position.x * scale % 1f
+        }
+        if(hit.position.z < 0f) {
+            hit.v = 1 - abs(hit.position.z* scale) % 1f
+        }
+        else {
+            hit.v = hit.position.z * scale % 1f
+        }
         return hit
     }
 }
