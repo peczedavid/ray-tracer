@@ -66,7 +66,7 @@ class RoughMaterial(diffuse: Vector3, specular: Vector3, shininess: Float) : Mat
 }
 
 
-class Camera() {
+class Camera {
     lateinit var position: Vector3
     lateinit var lookAt: Vector3
     lateinit var right: Vector3
@@ -82,8 +82,9 @@ class Camera() {
     }
 
     fun makeRay(x: Int, y: Int, width: Int, height: Int) : Ray {
+        val asp = width / height.toFloat()
         val direction =
-            lookAt + right * (2f * (x + 0.5f) / width - 1f) + up * (2f * (y + 0.5f) / height - 1f) - position
+            lookAt + right * (2f * (x + 0.5f) / width - 1f) * asp + up * (2f * (y + 0.5f) / height - 1f) - position
         return Ray(position, normalize(direction))
     }
 }

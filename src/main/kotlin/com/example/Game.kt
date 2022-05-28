@@ -11,18 +11,16 @@ import javafx.scene.image.Image
 import javafx.scene.image.PixelWriter
 import javafx.scene.input.KeyCode
 import javafx.scene.paint.Color
+import javafx.scene.text.Font
 import javafx.stage.Stage
-import java.lang.Math.*
 import kotlin.math.PI
 import kotlin.math.pow
 
 class Game : Application() {
 
     companion object {
-        const val WIDTH = 800
-        const val HEIGHT = 800
-        const val CAMERA_WIDTH = 800
-        const val CAMERA_HEIGHT = 800
+        const val WIDTH = 1280//800
+        const val HEIGHT = 720//800
     }
 
     private lateinit var mainScene: Scene
@@ -34,8 +32,8 @@ class Game : Application() {
     private val sceneLights : MutableList<Light> = arrayListOf()
     private val camera: Camera = Camera()
 
-    private val ambientColor = Vector3(0.1f, 0.1f, 0.1f)
-    private var scale = 10
+    private val ambientColor = Vector3(0.25f, 0.25f, 0.25f)
+    private var renderScale = 6
 
     private lateinit var skybox : Image
     private lateinit var skySphere : Sphere
@@ -68,10 +66,12 @@ class Game : Application() {
 
         sceneLights.add(Light(Vector3(1f, 1f, 1f), Vector3(1f, 1f, 1f)))
 
+        val uvImage = Image("/uv-test.png")
+
         val reflectiveMaterial =
-            ReflectiveMaterial(Vector3(1f, 1f, 1f), Vector3(5f, 4f, 3f))
-        val planeMaterial =
-            RoughMaterial(Vector3(0.3f, 0.1f, 0.1f), Vector3(0.3f, 0.1f, 0.1f), 100f)
+            ReflectiveMaterial(Vector3(1f, 1f, 1f), Vector3(5f, 5f, 5f))
+        val blueReflectiveMaterial =
+            ReflectiveMaterial(Vector3(1f, 1f, 1f), Vector3(3f, 3f, 10f))
         val blueMaterial =
             RoughMaterial(Vector3(0.2f, 0.4f, 0.8f), Vector3(0.2f, 0.4f, 0.8f), 100f)
         val greenMaterial =
@@ -79,23 +79,18 @@ class Game : Application() {
         val redMaterial =
             RoughMaterial(Vector3(0.8f, 0.2f, 0.2f), Vector3(0.8f, 0.2f, 0.2f), 100f)
         val imageMaterial =
-            RoughMaterial(Image("uv-test.png"), Vector3(1f, 1f, 1f), 100f)
+            RoughMaterial(uvImage, Vector3(0f, 0f, 0f), 100f)
         val skyMaterial =
             RoughMaterial(Image("/HDR_029_Sky_Cloudy_Bg.jpg"), Vector3(0f, 0f, 0f), 1000f)
         skyMaterial.ambient = Vector3(1f, 1f, 1f)
 
-
         skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
         sceneObjects.add(skySphere)
 
-        sceneObjects.add(Sphere(Vector3(2f, 2f, 0f), 1f, blueMaterial))
+        sceneObjects.add(Sphere(Vector3(2f, 2f, 0f), 1f, blueReflectiveMaterial))
         sceneObjects.add(Sphere(Vector3(0f, 2f, -2f), 1f, imageMaterial))
-        sceneObjects.add(Sphere(Vector3(-2f, 5f, 0f), 1f, reflectiveMaterial))
-        sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f),
-            RoughMaterial(Image("uv-test.png"), Vector3(1f, 1f, 1f), 100f), 0.25f))
-
-
-
+        sceneObjects.add(Sphere(Vector3(-2f, 2f, 0f), 1f, reflectiveMaterial))
+        sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), imageMaterial).apply { scale = 0.2f })
 
         skybox = Image("/hdri-skybox.jpg")
 
@@ -231,10 +226,10 @@ class Game : Application() {
     }
 
     private fun controlScale() {
-        if(currentlyActiveKeys.contains(KeyCode.E)) scale -= 1
-        if(currentlyActiveKeys.contains(KeyCode.Q)) scale += 1
+        if(currentlyActiveKeys.contains(KeyCode.E)) renderScale -= 1
+        if(currentlyActiveKeys.contains(KeyCode.Q)) renderScale += 1
 
-        scale = scale.coerceIn(1, 30)
+        renderScale = renderScale.coerceIn(1, 30)
     }
 
     private fun tickAndRender(currentNanoTime: Long) {
@@ -249,15 +244,15 @@ class Game : Application() {
         controlCamera(elapsedMs / 1000f)
         controlScale()
 
-        for(y in 0 until HEIGHT step scale) {
-            for(x in 0 until WIDTH step scale) {
-                val color = trace(camera.makeRay(x, y, CAMERA_WIDTH, CAMERA_HEIGHT))
+        for(y in 0 until HEIGHT step renderScale) {
+            for(x in 0 until WIDTH step renderScale) {
+                val color = trace(camera.makeRay(x, y, WIDTH, HEIGHT))
                 val colorVector = Color.color(
                     color.x.toDouble(),
                     color.y.toDouble(),
                     color.z.toDouble())
-                for(_y in y until y+scale) {
-                    for(_x in x until x + scale) {
+                for(_y in y until y+renderScale) {
+                    for(_x in x until x + renderScale) {
                         pixelWriter.setColor(_x, HEIGHT - _y, colorVector)
                     }
                 }
@@ -269,7 +264,9 @@ class Game : Application() {
 
         if (elapsedMs != 0L) {
             graphicsContext.fill = Color.WHITE
-            graphicsContext.fillText("${1000 / elapsedMs} fps", 10.0, 10.0)
+            graphicsContext.font = Font.font(22.0)
+            graphicsContext.fillText("${1000 / elapsedMs} fps - $renderScale:1", 10.0, 27.0)
+            graphicsContext.fillText("$WIDTH x $HEIGHT", 10.0, (HEIGHT - 10).toDouble())
         }
     }
 }
