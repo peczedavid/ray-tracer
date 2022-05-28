@@ -47,7 +47,7 @@ class RoughMaterial(diffuse: Vector3, specular: Vector3, shininess: Float) : Mat
         type = MaterialType.ROUGH
     }
 
-    constructor(image: Image, specular: Vector3, shininess: Float) :
+    constructor(image: Image, specular: Vector3, shininess: Float = 30f) :
             this(Vector3(0f, 0f, 0f), specular, shininess){
         this.image = image
         useTexture = true

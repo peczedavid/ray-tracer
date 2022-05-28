@@ -10,6 +10,7 @@ import javafx.scene.canvas.GraphicsContext
 import javafx.scene.image.Image
 import javafx.scene.image.PixelWriter
 import javafx.scene.input.KeyCode
+import javafx.scene.input.MouseButton
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.stage.Stage
@@ -19,8 +20,8 @@ import kotlin.math.pow
 class Game : Application() {
 
     companion object {
-        const val WIDTH = 1280
-        const val HEIGHT = 720
+        var WIDTH = 1280
+        var HEIGHT = 720
     }
 
     private lateinit var mainScene: Scene
@@ -31,16 +32,18 @@ class Game : Application() {
     private val sceneObjects : MutableList<Intersectable> = arrayListOf()
     private val sceneLights : MutableList<Light> = arrayListOf()
     private val camera: Camera = Camera()
+    private var cameraFov = 60f
 
     private val ambientColor = Vector3(0.25f, 0.25f, 0.25f)
-    private var renderScale = 4
+    private var renderScale = 6
 
-    private lateinit var skybox : Image
     private lateinit var skySphere : Sphere
     private lateinit var pixelWriter: PixelWriter
 
     // use a set so duplicates are not possible
     private val currentlyActiveKeys = mutableSetOf<KeyCode>()
+
+    private lateinit var canvas : Canvas
 
     override fun start(mainStage: Stage) {
         mainStage.title = "Ray tracing"
@@ -49,7 +52,7 @@ class Game : Application() {
         mainScene = Scene(root)
         mainStage.scene = mainScene
 
-        val canvas = Canvas(WIDTH.toDouble(), HEIGHT.toDouble())
+        canvas = Canvas(WIDTH.toDouble(), HEIGHT.toDouble())
         root.children.add(canvas)
 
         prepareActionHandlers()
@@ -58,16 +61,18 @@ class Game : Application() {
         pixelWriter = graphicsContext.pixelWriter
 
         camera.set(
-            position = Vector3(0f, 1f, 5f),
+            position = Vector3(0f, 1f, 3.5f),
             lookAt = Vector3(0f, 1f, 0f),
             vup = Vector3(0f, 1f, 0f),
-            fov = 60f * PI.toFloat() / 180f
+            fov = cameraFov * PI.toFloat() / 180f
         )
 
         sceneLights.add(Light(Vector3(1f, 1f, 1f), Vector3(1f, 1f, 1f)))
 
         val uvImage = Image("/uv-test.png")
 
+        val groundTexture =
+            RoughMaterial(Image("/checker-board.jpg"), Vector3(0f, 0f, 0f))
         val reflectiveMaterial =
             ReflectiveMaterial(Vector3(1f, 1f, 1f), Vector3(5f, 5f, 5f))
         val blueReflectiveMaterial =
@@ -81,7 +86,7 @@ class Game : Application() {
         val imageMaterial =
             RoughMaterial(uvImage, Vector3(0f, 0f, 0f), 100f)
         val skyMaterial =
-            RoughMaterial(Image("/HDR_029_Sky_Cloudy_Bg.jpg"), Vector3(0f, 0f, 0f), 1000f)
+            RoughMaterial(Image("/HDR_029_Sky_Cloudy_Bg.jpg"), Vector3(0f, 0f, 0f))
         skyMaterial.ambient = Vector3(1f, 1f, 1f)
 
         skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
@@ -90,9 +95,7 @@ class Game : Application() {
         sceneObjects.add(Sphere(Vector3(2f, 1f, 0f), 1f, blueReflectiveMaterial))
         sceneObjects.add(Sphere(Vector3(0f, 1f, -2f), 1f, imageMaterial))
         sceneObjects.add(Sphere(Vector3(-2f, 1f, 0f), 1f, reflectiveMaterial))
-        sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), imageMaterial).apply { scale = 0.2f })
-
-        skybox = Image("/hdri-skybox.jpg")
+        sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), groundTexture).apply { scale = 0.2f })
 
         // Main loop
         object : AnimationTimer() {
@@ -128,18 +131,6 @@ class Game : Application() {
         for(i in 1 until sceneObjects.size)
             if(sceneObjects[i].Intersect(ray).t > 0f) return true
         return false
-    }
-
-    private fun getSkyBoxColor(hit: Hit) : Vector3 {
-        val d = -hit.normal
-        var u = 0.5f + kotlin.math.atan2(d.x.toDouble(), d.z.toDouble()) / (2f * PI.toFloat())
-        var v = 0.5f + kotlin.math.asin(d.y.toDouble()) / PI.toFloat()
-        u = (1 - u) * skybox.width
-        v *= skybox.height
-        u = u.coerceIn(0.0, skybox.width - 1)
-        v = v.coerceIn(0.0, skybox.height - 1)
-        val color = skybox.pixelReader.getColor(u.toInt(), v.toInt())
-        return Vector3(color.red.toFloat(), color.green.toFloat(), color.blue.toFloat())
     }
 
     private fun trace(ray: Ray, depth : Int = 0) : Vector3 {
@@ -185,7 +176,7 @@ class Game : Application() {
     private fun controlCamera(dt: Float) {
         val speed = 4f
         val facing = normalize(camera.lookAt - camera.position)
-        val fov = 60f * PI.toFloat() / 180f
+        val fov = cameraFov * PI.toFloat() / 180f
         val vup = Vector3(0f, 1f, 0f)
         if(currentlyActiveKeys.contains(KeyCode.W)) {
             val delta = facing * speed * dt
@@ -233,6 +224,10 @@ class Game : Application() {
     }
 
     private fun tickAndRender(currentNanoTime: Long) {
+        WIDTH = mainScene.width.toInt()
+        HEIGHT = mainScene.height.toInt()
+        canvas.width = WIDTH.toDouble()
+        canvas.height = HEIGHT.toDouble()
         // the time elapsed since the last frame, in nanoseconds
         // can be used for physics calculation, etc
         val elapsedNanos = currentNanoTime - lastFrameTime
