@@ -19,8 +19,8 @@ import kotlin.math.pow
 class Game : Application() {
 
     companion object {
-        const val WIDTH = 1280//800
-        const val HEIGHT = 720//800
+        const val WIDTH = 1280
+        const val HEIGHT = 720
     }
 
     private lateinit var mainScene: Scene
@@ -33,7 +33,7 @@ class Game : Application() {
     private val camera: Camera = Camera()
 
     private val ambientColor = Vector3(0.25f, 0.25f, 0.25f)
-    private var renderScale = 6
+    private var renderScale = 4
 
     private lateinit var skybox : Image
     private lateinit var skySphere : Sphere
@@ -58,8 +58,8 @@ class Game : Application() {
         pixelWriter = graphicsContext.pixelWriter
 
         camera.set(
-            position = Vector3(0f, 2f, 5f),
-            lookAt = Vector3(0f, 2f, 0f),
+            position = Vector3(0f, 1f, 5f),
+            lookAt = Vector3(0f, 1f, 0f),
             vup = Vector3(0f, 1f, 0f),
             fov = 60f * PI.toFloat() / 180f
         )
@@ -87,9 +87,9 @@ class Game : Application() {
         skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
         sceneObjects.add(skySphere)
 
-        sceneObjects.add(Sphere(Vector3(2f, 2f, 0f), 1f, blueReflectiveMaterial))
-        sceneObjects.add(Sphere(Vector3(0f, 2f, -2f), 1f, imageMaterial))
-        sceneObjects.add(Sphere(Vector3(-2f, 2f, 0f), 1f, reflectiveMaterial))
+        sceneObjects.add(Sphere(Vector3(2f, 1f, 0f), 1f, blueReflectiveMaterial))
+        sceneObjects.add(Sphere(Vector3(0f, 1f, -2f), 1f, imageMaterial))
+        sceneObjects.add(Sphere(Vector3(-2f, 1f, 0f), 1f, reflectiveMaterial))
         sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), imageMaterial).apply { scale = 0.2f })
 
         skybox = Image("/hdri-skybox.jpg")
