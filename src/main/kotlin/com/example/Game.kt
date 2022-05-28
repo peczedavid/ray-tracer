@@ -81,16 +81,18 @@ class Game : Application() {
         val imageMaterial =
             RoughMaterial(Image("uv-test.png"), Vector3(1f, 1f, 1f), 100f)
         val skyMaterial =
-            RoughMaterial(Image("/hdri-skybox.jpg"), Vector3(0f, 0f, 0f), 1000f)
+            RoughMaterial(Image("/HDR_029_Sky_Cloudy_Bg.jpg"), Vector3(0f, 0f, 0f), 1000f)
         skyMaterial.ambient = Vector3(1f, 1f, 1f)
 
 
         skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
         sceneObjects.add(skySphere)
+
         sceneObjects.add(Sphere(Vector3(2f, 2f, 0f), 1f, blueMaterial))
         sceneObjects.add(Sphere(Vector3(0f, 2f, -2f), 1f, imageMaterial))
         sceneObjects.add(Sphere(Vector3(-2f, 5f, 0f), 1f, reflectiveMaterial))
-        sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), planeMaterial))
+        sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f),
+            RoughMaterial(Image("uv-test.png"), Vector3(1f, 1f, 1f), 100f), 0.25f))
 
 
 
@@ -118,8 +120,9 @@ class Game : Application() {
 
     private fun firstHit(ray: Ray) : Hit {
         var firstHit = Hit()
-        sceneObjects.forEach {
+        sceneObjects.forEachIndexed { i, it ->
             val hit = it.Intersect(ray)
+            if(i == 0) hit.skybox = true
             if(hit.t > 0f && (firstHit.t < 0f || hit.t < firstHit.t)) firstHit = hit
         }
         if(dot(ray.direction, firstHit.normal) > 0f) firstHit.normal = -firstHit.normal
@@ -154,7 +157,7 @@ class Game : Application() {
         var outColor = Vector3(0f, 0f, 0f)
         when (hit.material.type) {
             MaterialType.ROUGH -> {
-                outColor = hit.material.ambient * ambientColor
+                outColor = if(hit.skybox) hit.material.ambient else hit.material.ambient * ambientColor
                 sceneLights.forEach {
                     val cosTheta = dot(hit.normal, it.direction)
                     val shadowRay = Ray(hit.position + hit.normal * 0.0001f, it.direction)

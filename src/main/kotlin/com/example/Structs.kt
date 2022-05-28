@@ -7,7 +7,7 @@ import kotlin.math.tan
 
 data class Hit(var t: Float = -1f, var position: Vector3 = Vector3(),
                var normal: Vector3 = Vector3(), var material : Material = Material(),
-               var u: Float = 0f, var v: Float = 0f)
+               var u: Float = 0f, var v: Float = 0f, var skybox: Boolean = false)
 
 data class Ray(val start: Vector3, val direction: Vector3)
 

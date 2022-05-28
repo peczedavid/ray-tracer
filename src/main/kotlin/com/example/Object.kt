@@ -1,9 +1,6 @@
 package com.example
 
-import kotlin.math.PI
-import kotlin.math.acos
-import kotlin.math.atan2
-import kotlin.math.sqrt
+import kotlin.math.*
 
 abstract class Intersectable(val material: Material) {
     abstract fun Intersect(ray: Ray) : Hit
@@ -32,7 +29,7 @@ class Sphere(var position: Vector3, var radius: Float, material: Material) : Int
     }
 }
 
-class Plane(val point: Vector3, val normal: Vector3, material: Material) : Intersectable(material) {
+class Plane(val point: Vector3, val normal: Vector3, material: Material, var scale: Float = 1f) : Intersectable(material) {
     override fun Intersect(ray: Ray) : Hit {
         val hit = Hit()
         val distance = point - ray.start
@@ -45,6 +42,8 @@ class Plane(val point: Vector3, val normal: Vector3, material: Material) : Inter
         hit.position = ray.start + ray.direction * hit.t
         hit.normal = normal
         hit.material = material
+        hit.u = abs(hit.position.x * scale) % 1f
+        hit.v = abs(hit.position.z * scale) % 1f
         return hit
     }
 }
