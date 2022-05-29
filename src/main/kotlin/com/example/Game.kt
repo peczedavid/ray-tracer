@@ -95,6 +95,8 @@ class Game : Application() {
             ReflectiveMaterial(Vector3(1f, 1f, 1f), Vector3(3f, 3f, 10f))
         val uvMaterial =
             RoughMaterial(uvImage, Vector3(0f, 0f, 0f), 100f)
+        val earthMaterial =
+            RoughMaterial(Image("/earth-8k.jpg"), Vector3(1f, 1f, 1.5f) * 0.125f, 50f)
         val skyMaterial =
             RoughMaterial(Image("/HDR_029_Sky_Cloudy_Bg.jpg"), Vector3(0f, 0f, 0f))
         skyMaterial.ambient = Vector3(1f, 1f, 1f)
@@ -102,8 +104,8 @@ class Game : Application() {
         skySphere = Sphere(Vector3(0f, 0f, 0f), 100f, skyMaterial)
         sceneObjects.add(skySphere)
 
-        sceneObjects.add(Sphere(Vector3(2f, 1f, 0f), 1f, blueGlassMaterial))
-        sceneObjects.add(Sphere(Vector3(0f, 1f, -1f), 1f, copper))
+        sceneObjects.add(Sphere(Vector3(2f, 1f, 0f), 1f, iron))
+        sceneObjects.add(Sphere(Vector3(0f, 1f, -1f), 1f, earthMaterial))
         sceneObjects.add(Sphere(Vector3(-2f, 1f, 0f), 1f, silver))
         sceneObjects.add(Plane(Vector3(0f, 0f, 0f), Vector3(0f, 1f, 0f), groundTexture).apply { scale = 0.2f })
 
